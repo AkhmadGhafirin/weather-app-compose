@@ -66,4 +66,13 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    testImplementation(libs.mockk.android)
+    testImplementation(libs.mockk.agent)
+    testImplementation(libs.turbine)
+
+    testImplementation(libs.kotlinx.coroutines.test)
+
+    implementation(libs.retrofit)
+    implementation(libs.moshi.kotlin)
 }
