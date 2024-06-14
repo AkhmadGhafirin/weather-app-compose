@@ -2,10 +2,10 @@ package com.cascer.weatherappcompose.apiinfra
 
 val weatherResponse = WeatherResponse(
     main = MainInfoResponse(
-        temp = 25.0,
-        feelsLike = 25.0,
-        tempMin = 25.0,
-        tempMax = 25.0,
+        temp = 282.7,
+        feelsLike = 282.7,
+        tempMin = 282.7,
+        tempMax = 282.7,
         pressure = 1013,
         humidity = 83,
     ),

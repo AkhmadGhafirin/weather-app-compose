@@ -70,7 +70,7 @@ class WeatherRetrofitClientTest {
                 } throws IOException()
             }
 
-            is HttpClientResult.Success<*> -> {
+            is HttpClientResult.Success -> {
                 coEvery {
                     service.get(cityName, apiKey)
                 } returns receivedResult as WeatherResponse

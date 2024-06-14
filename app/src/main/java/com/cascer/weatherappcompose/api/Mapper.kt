@@ -9,7 +9,7 @@ fun RemoteWeather.toDomain(): Weather = Weather(
     name = name,
     main = main.toDomain(),
     weather = weather.map { it.toDomain() },
-    forecasts = emptyList()
+    forecasts = forecasts.map { it.toDomain() }
 )
 
 fun RemoteMainInfo.toDomain(): MainInfo = MainInfo(

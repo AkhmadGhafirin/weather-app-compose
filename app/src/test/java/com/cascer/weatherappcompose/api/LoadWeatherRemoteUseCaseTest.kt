@@ -109,7 +109,7 @@ class LoadWeatherRemoteUseCaseTest {
 
     private fun expect(
         sut: LoadWeatherRemoteUseCase,
-        receivedResult: HttpClientResult<RemoteWeather>,
+        receivedResult: HttpClientResult,
         expectedResult: Any
     ) = runBlocking {
         every {
@@ -118,14 +118,14 @@ class LoadWeatherRemoteUseCaseTest {
 
         sut.load(cityName, apiKey).test {
             when (val result = awaitItem()) {
-                is HttpClientResult.Success<*> -> {
+                is Result.Success -> {
                     Assert.assertEquals(
                         expectedResult,
                         result
                     )
                 }
 
-                is HttpClientResult.Failure<*> -> {
+                is Result.Failure -> {
                     Assert.assertEquals(
                         expectedResult::class.java,
                         result.exception::class.java

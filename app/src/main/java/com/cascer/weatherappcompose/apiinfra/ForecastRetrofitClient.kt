@@ -2,9 +2,8 @@ package com.cascer.weatherappcompose.apiinfra
 
 import com.cascer.weatherappcompose.api.ConnectivityException
 import com.cascer.weatherappcompose.api.ForecastHttpClient
-import com.cascer.weatherappcompose.api.RemoteWeatherInfo
-import com.cascer.weatherappcompose.api.UnexpectedException
 import com.cascer.weatherappcompose.api.HttpClientResult
+import com.cascer.weatherappcompose.api.UnexpectedException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.io.IOException
@@ -16,11 +15,10 @@ class ForecastRetrofitClient @Inject constructor(
     override fun load(
         cityId: Int,
         apiKey: String
-    ): Flow<HttpClientResult<List<RemoteWeatherInfo>>> = flow {
+    ): Flow<HttpClientResult> = flow {
         try {
-            val response = service.get(cityId, apiKey).list.map { it.toAppLogic() }
-            val list = response.flatMap { it.weather }
-            emit(HttpClientResult.Success(list))
+            val response = service.get(cityId, apiKey).toAppLogic()
+            emit(HttpClientResult.Success(response))
         } catch (exception: Exception) {
             when (exception) {
                 is IOException -> {

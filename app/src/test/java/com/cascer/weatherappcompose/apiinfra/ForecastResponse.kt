@@ -4,12 +4,12 @@ val forecastResponse = ForecastResponse(
     list = listOf(
         WeatherResponse(
             main = MainInfoResponse(
-                temp = 25.0,
-                feelsLike = 25.0,
-                tempMin = 25.0,
-                tempMax = 25.0,
-                pressure = 1013,
-                humidity = 83,
+                temp = 0.0,
+                feelsLike = 0.0,
+                tempMin = 0.0,
+                tempMax = 0.0,
+                pressure = 0,
+                humidity = 0,
             ),
             weather = listOf(
                 WeatherInfoResponse(
@@ -19,7 +19,7 @@ val forecastResponse = ForecastResponse(
                     icon = "01d"
                 )
             ),
-            name = "Davos"
+            name = "",
         )
     )
 )

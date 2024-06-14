@@ -1,6 +1,6 @@
 package com.cascer.weatherappcompose.domain
 
-sealed class Result<T> {
-    data class Success<T>(val data: T) : Result<T>()
-    data class Failure<T>(val exception: Exception) : Result<T>()
+sealed class Result {
+    data class Success(val data: Weather) : Result()
+    data class Failure(val exception: Exception) : Result()
 }

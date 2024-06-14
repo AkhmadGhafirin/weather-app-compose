@@ -2,9 +2,9 @@ package com.cascer.weatherappcompose.apiinfra
 
 import app.cash.turbine.test
 import com.cascer.weatherappcompose.api.ConnectivityException
-import com.cascer.weatherappcompose.api.UnexpectedException
 import com.cascer.weatherappcompose.api.HttpClientResult
-import com.cascer.weatherappcompose.api.remoteWeatherInfo
+import com.cascer.weatherappcompose.api.UnexpectedException
+import com.cascer.weatherappcompose.api.remoteForecastWeather
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -47,7 +47,7 @@ class ForecastRetrofitClientTest {
         expect(
             sut = sut,
             receivedResult = forecastResponse,
-            expectedResult = HttpClientResult.Success(remoteWeatherInfo)
+            expectedResult = HttpClientResult.Success(remoteForecastWeather)
         )
     }
 
@@ -70,7 +70,7 @@ class ForecastRetrofitClientTest {
                 } throws IOException()
             }
 
-            is HttpClientResult.Success<*> -> {
+            is HttpClientResult.Success -> {
                 coEvery {
                     service.get(cityId, apiKey)
                 } returns receivedResult as ForecastResponse

@@ -5,11 +5,16 @@ import com.cascer.weatherappcompose.domain.LoadWeatherUseCase
 import com.cascer.weatherappcompose.presentation.WeatherUiState
 import com.cascer.weatherappcompose.presentation.WeatherViewModel
 import io.mockk.MockKAnnotations
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.confirmVerified
+import io.mockk.every
 import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.setMain
 import org.junit.Assert
@@ -20,6 +25,9 @@ class WeatherViewModelTest {
     private val weatherUseCase = spyk<LoadWeatherUseCase>()
     private val forecastUseCase = spyk<LoadForecastUseCase>()
     private lateinit var sut: WeatherViewModel
+    private val cityName = "Davos"
+    private val cityId = 2661039
+    private val apiKey = "1b7eeecd2ff64dc83e8dcf1f4cb2102b"
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Before
@@ -49,17 +57,29 @@ class WeatherViewModelTest {
     }
 
     @Test
-    fun testInitWeatherDoesNotLoad() {
-        verify(exactly = 0) {
-            weatherUseCase.load("", "")
+    fun testInitWeatherDoesLoad() = runBlocking {
+        coEvery {
+            forecastUseCase.load(cityId, apiKey)
+            weatherUseCase.load(cityName, apiKey)
+        } returns flowOf()
+//        coEvery {
+//            weatherUseCase.load(cityName, apiKey)
+//        } returns flowOf()
+
+        sut.load()
+
+        coVerify(exactly = 1) {
+            forecastUseCase.load(cityId, apiKey)
+            weatherUseCase.load(cityName, apiKey)
         }
 
+        confirmVerified(forecastUseCase)
         confirmVerified(weatherUseCase)
     }
 
     @Test
-    fun testInitForecastDoesNotLoad() {
-        verify(exactly = 0) {
+    fun testInitForecastDoesLoad() {
+        verify(exactly = 1) {
             forecastUseCase.load(0, "")
         }
 

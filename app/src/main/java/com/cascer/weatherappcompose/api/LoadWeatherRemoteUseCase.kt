@@ -4,7 +4,6 @@ import com.cascer.weatherappcompose.domain.Connectivity
 import com.cascer.weatherappcompose.domain.LoadWeatherUseCase
 import com.cascer.weatherappcompose.domain.Result
 import com.cascer.weatherappcompose.domain.Unexpected
-import com.cascer.weatherappcompose.domain.Weather
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -15,7 +14,7 @@ class LoadWeatherRemoteUseCase @Inject constructor(
     override fun load(
         cityName: String,
         apiKey: String
-    ): Flow<Result<Weather>> = flow {
+    ): Flow<Result> = flow {
         client.load(cityName, apiKey).collect { result ->
             when (result) {
                 is HttpClientResult.Success -> {

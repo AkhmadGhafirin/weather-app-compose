@@ -4,7 +4,7 @@ import app.cash.turbine.test
 import com.cascer.weatherappcompose.domain.Connectivity
 import com.cascer.weatherappcompose.domain.Result
 import com.cascer.weatherappcompose.domain.Unexpected
-import com.cascer.weatherappcompose.domain.weatherInfoList
+import com.cascer.weatherappcompose.domain.forecastWeather
 import io.mockk.clearAllMocks
 import io.mockk.confirmVerified
 import io.mockk.every
@@ -97,8 +97,8 @@ class LoadForecastRemoteUseCaseTest {
     fun testLoadDeliversForecastOnSuccessWithForecast() {
         expect(
             sut = sut,
-            receivedResult = HttpClientResult.Success(remoteWeatherInfo),
-            expectedResult = Result.Success(weatherInfoList)
+            receivedResult = HttpClientResult.Success(remoteForecastWeather),
+            expectedResult = Result.Success(forecastWeather)
         )
     }
 
@@ -109,7 +109,7 @@ class LoadForecastRemoteUseCaseTest {
 
     private fun expect(
         sut: LoadForecastRemoteUseCase,
-        receivedResult: HttpClientResult<List<RemoteWeatherInfo>>,
+        receivedResult: HttpClientResult,
         expectedResult: Any
     ) = runBlocking {
         every {
@@ -118,14 +118,14 @@ class LoadForecastRemoteUseCaseTest {
 
         sut.load(cityId, apiKey).test {
             when (val result = awaitItem()) {
-                is HttpClientResult.Success<*> -> {
+                is Result.Success -> {
                     Assert.assertEquals(
                         expectedResult,
                         result
                     )
                 }
 
-                is HttpClientResult.Failure<*> -> {
+                is Result.Failure -> {
                     Assert.assertEquals(
                         expectedResult::class.java,
                         result.exception::class.java
