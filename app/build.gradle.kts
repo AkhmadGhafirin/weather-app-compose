@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
-    kotlin("kapt")
+    alias(libs.plugins.devtools.ksp)
     alias(libs.plugins.dagger.hilt)
 }
 
@@ -88,9 +88,6 @@ dependencies {
 
     // Injection
     implementation(libs.dagger.hilt.android)
-    kapt(libs.dagger.hilt.compiler)
+    ksp(libs.dagger.hilt.compiler)
     implementation(libs.dagger.hilt.navigation.compose)
-}
-kapt {
-    correctErrorTypes = true
 }

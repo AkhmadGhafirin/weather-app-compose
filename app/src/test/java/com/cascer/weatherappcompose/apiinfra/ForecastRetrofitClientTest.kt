@@ -4,7 +4,7 @@ import app.cash.turbine.test
 import com.cascer.weatherappcompose.api.ConnectivityException
 import com.cascer.weatherappcompose.api.UnexpectedException
 import com.cascer.weatherappcompose.api.HttpClientResult
-import com.cascer.weatherappcompose.api.remoteWeather
+import com.cascer.weatherappcompose.api.remoteWeatherInfo
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -17,13 +17,13 @@ import org.junit.Before
 import org.junit.Test
 import java.io.IOException
 
-class WeatherRetrofitClientTest {
-    private val service = mockk<WeatherService>()
-    private lateinit var sut: WeatherRetrofitClient
+class ForecastRetrofitClientTest {
+    private val service = mockk<ForecastService>()
+    private lateinit var sut: ForecastRetrofitClient
 
     @Before
     fun setUp() {
-        sut = WeatherRetrofitClient(service)
+        sut = ForecastRetrofitClient(service)
     }
 
     @Test
@@ -46,8 +46,8 @@ class WeatherRetrofitClientTest {
     fun testGetSuccessOn200HttpResponseWithResponse() {
         expect(
             sut = sut,
-            receivedResult = weatherResponse,
-            expectedResult = HttpClientResult.Success(remoteWeather)
+            receivedResult = forecastResponse,
+            expectedResult = HttpClientResult.Success(remoteWeatherInfo)
         )
     }
 
@@ -57,34 +57,33 @@ class WeatherRetrofitClientTest {
     }
 
     private fun expect(
-        sut: WeatherRetrofitClient,
+        sut: ForecastRetrofitClient,
         receivedResult: Any? = null,
         expectedResult: Any,
     ) = runBlocking {
-        val cityName = "Davos"
+        val cityId = 2661039
         val apiKey = "123"
         when (expectedResult) {
             is ConnectivityException -> {
                 coEvery {
-                    service.get(cityName, apiKey)
+                    service.get(cityId, apiKey)
                 } throws IOException()
             }
 
             is HttpClientResult.Success<*> -> {
                 coEvery {
-                    service.get(cityName, apiKey)
-                } returns receivedResult as WeatherResponse
-
+                    service.get(cityId, apiKey)
+                } returns receivedResult as ForecastResponse
             }
 
             else -> {
                 coEvery {
-                    service.get(cityName, apiKey)
+                    service.get(cityId, apiKey)
                 } throws Exception()
             }
         }
 
-        sut.load(cityName, apiKey).test {
+        sut.load(cityId, apiKey).test {
             when (val result = awaitItem()) {
                 is HttpClientResult.Success -> {
                     Assert.assertEquals(
@@ -103,10 +102,8 @@ class WeatherRetrofitClientTest {
             awaitComplete()
         }
 
-
-
         coVerify(exactly = 1) {
-            service.get(cityName, apiKey)
+            service.get(cityId, apiKey)
         }
 
         confirmVerified(service)

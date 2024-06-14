@@ -3,10 +3,13 @@ package com.cascer.weatherappcompose.presentation
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cascer.weatherappcompose.core.di.RemoteLoadForecastUseCaseAnnotation
+import com.cascer.weatherappcompose.core.di.RemoteLoadWeatherUseCaseAnnotation
 import com.cascer.weatherappcompose.domain.Connectivity
-import com.cascer.weatherappcompose.domain.LoadWeatherResult
+import com.cascer.weatherappcompose.domain.LoadForecastUseCase
 import com.cascer.weatherappcompose.domain.LoadWeatherUseCase
 import com.cascer.weatherappcompose.domain.MainInfo
+import com.cascer.weatherappcompose.domain.Result
 import com.cascer.weatherappcompose.domain.Weather
 import com.cascer.weatherappcompose.domain.WeatherInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -63,7 +66,8 @@ data class WeatherViewModelState(
 
 @HiltViewModel
 class WeatherViewModel @Inject constructor(
-    private val useCase: LoadWeatherUseCase,
+    @RemoteLoadWeatherUseCaseAnnotation private val weatherUseCase: LoadWeatherUseCase,
+    @RemoteLoadForecastUseCaseAnnotation private val forecastUseCase: LoadForecastUseCase
 ) : ViewModel() {
     private val cities = mapOf(
         4899170 to "Lake Zurich",
@@ -97,17 +101,17 @@ class WeatherViewModel @Inject constructor(
         )
 
     init {
-        load()
+//        load()
     }
 
     private fun load(tab: String = "Clear") = viewModelScope.launch {
         cities.keys.forEach { id ->
             val resultForecast = mutableListOf<WeatherInfo>()
             val resultWeather = mutableStateOf<Weather?>(null)
-            useCase.loadForecast(cityId = id, apiKey = API_KEY).collect { result ->
+            forecastUseCase.load(cityId = id, apiKey = API_KEY).collect { result ->
                 when (result) {
-                    is LoadWeatherResult.Success -> resultForecast.addAll(result.data)
-                    is LoadWeatherResult.Failure -> {
+                    is Result.Success -> resultForecast.addAll(result.data)
+                    is Result.Failure -> {
                         when (result.exception) {
                             is Connectivity -> {
                                 viewModelState.update { it.copy(failed = CONNECTIVITY_FAIL) }
@@ -121,11 +125,11 @@ class WeatherViewModel @Inject constructor(
                 }
             }
 
-            useCase.loadWeather(cityName = cities[id].orEmpty(), apiKey = API_KEY)
+            weatherUseCase.load(cityName = cities[id].orEmpty(), apiKey = API_KEY)
                 .collect { result ->
                     when (result) {
-                        is LoadWeatherResult.Success -> resultWeather.value = result.data
-                        is LoadWeatherResult.Failure -> {
+                        is Result.Success -> resultWeather.value = result.data
+                        is Result.Failure -> {
                             when (result.exception) {
                                 is Connectivity -> {
                                     viewModelState.update { it.copy(failed = CONNECTIVITY_FAIL) }

@@ -1,25 +1,25 @@
 package com.cascer.weatherappcompose.api
 
 import com.cascer.weatherappcompose.domain.Connectivity
-import com.cascer.weatherappcompose.domain.LoadWeatherUseCase
+import com.cascer.weatherappcompose.domain.LoadForecastUseCase
 import com.cascer.weatherappcompose.domain.Result
 import com.cascer.weatherappcompose.domain.Unexpected
-import com.cascer.weatherappcompose.domain.Weather
+import com.cascer.weatherappcompose.domain.WeatherInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
-class LoadWeatherRemoteUseCase @Inject constructor(
-    private val client: WeatherHttpClient
-) : LoadWeatherUseCase {
+class LoadForecastRemoteUseCase @Inject constructor(
+    private val client: ForecastHttpClient
+) : LoadForecastUseCase {
     override fun load(
-        cityName: String,
+        cityId: Int,
         apiKey: String
-    ): Flow<Result<Weather>> = flow {
-        client.load(cityName, apiKey).collect { result ->
+    ): Flow<Result<List<WeatherInfo>>> = flow {
+        client.load(cityId, apiKey).collect { result ->
             when (result) {
                 is HttpClientResult.Success -> {
-                    emit(Result.Success(result.data.toDomain()))
+                    emit(Result.Success(result.data.map { it.toDomain() }))
                 }
 
                 is HttpClientResult.Failure -> {
