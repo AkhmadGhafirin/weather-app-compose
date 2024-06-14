@@ -101,7 +101,7 @@ class WeatherViewModel @Inject constructor(
         )
 
     init {
-//        load()
+        load()
     }
 
     private fun load(tab: String = "Clear") = viewModelScope.launch {
