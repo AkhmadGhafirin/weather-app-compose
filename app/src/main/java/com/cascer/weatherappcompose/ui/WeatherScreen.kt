@@ -70,24 +70,11 @@ fun WeatherScreen(
                         TabCard(
                             modifier = Modifier.padding(start = 6.dp, end = 6.dp),
                             title = tab,
-                            cardColor = if (selectedTab.value == tab) {
-                                Color.Blue
-                            } else {
-                                Color.White
-                            },
-                            borderColor = if (selectedTab.value == tab) {
-                                Color.Blue
-                            } else {
-                                Color.Black
-                            },
-                            titleColor = if (selectedTab.value == tab) {
-                                Color.White
-                            } else {
-                                Color.Black
-                            },
+                            cardColor = if (selectedTab.value == tab) Color.Blue else Color.White,
+                            borderColor = if (selectedTab.value == tab) Color.Blue else Color.Black,
+                            titleColor = if (selectedTab.value == tab) Color.White else Color.Black,
                             onTabClick = {
                                 selectedTab.value = tab
-//                                viewModel.filterByTab(tab)
                                 viewModel.load(tab)
                             }
                         )
@@ -111,9 +98,9 @@ fun WeatherScreen(
 
                             is WeatherUiState.NoWeather -> {
                                 if (weatherUiState.failed.isEmpty()) {
-                                    Text("List Weather Empty",)
+                                    Text("List Weather Empty")
                                 } else {
-                                    Text(weatherUiState.failed,)
+                                    Text(weatherUiState.failed)
                                 }
                             }
                         }

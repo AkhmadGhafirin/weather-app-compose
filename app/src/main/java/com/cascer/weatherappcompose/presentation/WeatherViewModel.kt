@@ -94,7 +94,6 @@ class WeatherViewModel @Inject constructor(
     private val viewModelState = MutableStateFlow(
         WeatherViewModelState(
             tabs = tabs,
-//            isLoading = true,
             isLoading = false,
             failed = ""
         )
