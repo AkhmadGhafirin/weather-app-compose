@@ -94,7 +94,8 @@ class WeatherViewModel @Inject constructor(
     private val viewModelState = MutableStateFlow(
         WeatherViewModelState(
             tabs = tabs,
-            isLoading = true,
+//            isLoading = true,
+            isLoading = false,
             failed = ""
         )
     )
@@ -111,7 +112,11 @@ class WeatherViewModel @Inject constructor(
         load()
     }
 
-    fun load() = CoroutineScope(Dispatchers.IO).launch {
+    fun load(tab: String = "Clear") = CoroutineScope(Dispatchers.IO).launch {
+        _weatherList.clear()
+        viewModelState.update {
+            it.copy(isLoading = true)
+        }
         var index = 0
         flow {
             supervisorScope {
@@ -127,11 +132,11 @@ class WeatherViewModel @Inject constructor(
                 }
             }
         }.onCompletion {
-            filterByTab("Clear")
+            filterByTab(tab)
         }.collect {
             val resultWeather = mutableStateOf<Weather?>(null)
-            it[0].collect { result -> collectData(result, resultWeather) }
-            it[1].collect { result -> collectData(result, resultWeather) }
+            it.firstOrNull()?.collect { result -> collectData(result, resultWeather) }
+            it.lastOrNull()?.collect { result -> collectData(result, resultWeather) }
         }
     }
 
@@ -167,7 +172,7 @@ class WeatherViewModel @Inject constructor(
         }
     }
 
-    fun filterByTab(tab: String) {
+    private fun filterByTab(tab: String) {
         viewModelState.update { root ->
             root.copy(
                 isLoading = false,

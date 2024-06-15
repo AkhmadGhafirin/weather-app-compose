@@ -87,7 +87,8 @@ fun WeatherScreen(
                             },
                             onTabClick = {
                                 selectedTab.value = tab
-                                viewModel.filterByTab(tab)
+//                                viewModel.filterByTab(tab)
+                                viewModel.load(tab)
                             }
                         )
                     }
