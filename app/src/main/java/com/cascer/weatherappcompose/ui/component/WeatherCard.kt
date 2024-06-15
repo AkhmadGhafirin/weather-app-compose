@@ -77,7 +77,7 @@ fun WeatherCard(modifier: Modifier = Modifier, weather: Weather) {
                     color = Color.Black
                 )
                 AsyncImage(
-                    model = "https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png",
+                    model = "https://openweathermap.org/img/wn/${weather.weather.firstOrNull()?.icon.orEmpty()}@2x.png",
                     contentDescription = "Icon",
                 )
             }

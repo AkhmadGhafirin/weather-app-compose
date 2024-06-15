@@ -1,6 +1,9 @@
 package com.cascer.weatherappcompose.core.di
 
+import com.cascer.weatherappcompose.api.ForecastHttpClient
 import com.cascer.weatherappcompose.api.WeatherHttpClient
+import com.cascer.weatherappcompose.apiinfra.ForecastRetrofitClient
+import com.cascer.weatherappcompose.apiinfra.ForecastService
 import com.cascer.weatherappcompose.apiinfra.WeatherRetrofitClient
 import com.cascer.weatherappcompose.apiinfra.WeatherService
 import com.squareup.moshi.Moshi
@@ -13,7 +16,6 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
-import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @Module
@@ -40,9 +42,6 @@ object NetworkModule {
     fun createOkhttpClient(httpLoggingInterceptor: HttpLoggingInterceptor): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(httpLoggingInterceptor)
-//            .connectTimeout(10, TimeUnit.SECONDS)
-//            .writeTimeout(10, TimeUnit.SECONDS)
-//            .readTimeout(10, TimeUnit.SECONDS)
             .build()
     }
 
@@ -62,5 +61,15 @@ object NetworkModule {
     @Provides
     fun provideWeatherHttpClient(service: WeatherService): WeatherHttpClient {
         return WeatherRetrofitClient(service)
+    }
+
+    @Provides
+    fun provideForecastService(retrofit: Retrofit): ForecastService {
+        return retrofit.create(ForecastService::class.java)
+    }
+
+    @Provides
+    fun provideForecastHttpClient(service: ForecastService): ForecastHttpClient {
+        return ForecastRetrofitClient(service)
     }
 }

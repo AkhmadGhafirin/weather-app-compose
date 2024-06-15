@@ -4,6 +4,13 @@ import com.cascer.weatherappcompose.api.RemoteMainInfo
 import com.cascer.weatherappcompose.api.RemoteWeather
 import com.cascer.weatherappcompose.api.RemoteWeatherInfo
 
+fun ForecastResponse.toAppLogic(): RemoteWeather = RemoteWeather(
+    main = RemoteMainInfo(0.0, 0.0, 0.0, 0.0, 0, 0),
+    weather = listOf(),
+    name = "",
+    forecasts = list.map { it.toAppLogic() }.flatMap { it.weather }
+)
+
 fun WeatherResponse.toAppLogic(): RemoteWeather = RemoteWeather(
     main = main.toAppLogic(),
     weather = weather.map { it.toAppLogic() },

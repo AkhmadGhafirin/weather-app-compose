@@ -1,10 +1,10 @@
 package com.cascer.weatherappcompose.domain
 
 data class Weather(
-    val main: MainInfo,
-    val weather: List<WeatherInfo>,
-    val name: String,
-    val forecasts: List<WeatherInfo>
+    val main: MainInfo = MainInfo(0.0, 0.0, 0.0, 0.0, "", "", "", 0, 0),
+    val weather: List<WeatherInfo> = emptyList(),
+    val name: String = "",
+    val forecasts: List<WeatherInfo> = emptyList()
 )
 
 data class MainInfo(

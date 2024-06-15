@@ -3,7 +3,8 @@ package com.cascer.weatherappcompose.api
 data class RemoteWeather(
     val main: RemoteMainInfo,
     val weather: List<RemoteWeatherInfo>,
-    val name: String
+    val name: String,
+    val forecasts: List<RemoteWeatherInfo> = emptyList()
 )
 
 data class RemoteMainInfo(

@@ -1,21 +1,30 @@
 package com.cascer.weatherappcompose.presentation
 
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cascer.weatherappcompose.core.di.RemoteLoadForecastUseCaseAnnotation
+import com.cascer.weatherappcompose.core.di.RemoteLoadWeatherUseCaseAnnotation
 import com.cascer.weatherappcompose.domain.Connectivity
-import com.cascer.weatherappcompose.domain.LoadWeatherResult
+import com.cascer.weatherappcompose.domain.LoadForecastUseCase
 import com.cascer.weatherappcompose.domain.LoadWeatherUseCase
-import com.cascer.weatherappcompose.domain.MainInfo
+import com.cascer.weatherappcompose.domain.Result
 import com.cascer.weatherappcompose.domain.Weather
-import com.cascer.weatherappcompose.domain.WeatherInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import javax.inject.Inject
 
 sealed interface WeatherUiState {
@@ -63,17 +72,19 @@ data class WeatherViewModelState(
 
 @HiltViewModel
 class WeatherViewModel @Inject constructor(
-    private val useCase: LoadWeatherUseCase,
+    @RemoteLoadWeatherUseCaseAnnotation private val weatherUseCase: LoadWeatherUseCase,
+    @RemoteLoadForecastUseCaseAnnotation private val forecastUseCase: LoadForecastUseCase
 ) : ViewModel() {
-    private val cities = mapOf(
-        4899170 to "Lake Zurich",
-        6244895 to "Upper Hutt",
-        2661039 to "Davos",
-        5879092 to "Alaska",
-        5780908 to "Sahara Village",
-        5781070 to "Sandy Hills",
-        792680 to "Belgrade",
-        4350049 to "California"
+
+    private val cities = listOf(
+        mapOf("id" to 4899170, "name" to "Lake Zurich"),
+        mapOf("id" to 6244895, "name" to "Upper Hutt"),
+        mapOf("id" to 2661039, "name" to "Davos"),
+        mapOf("id" to 5879092, "name" to "Alaska"),
+        mapOf("id" to 5780908, "name" to "Sahara Village"),
+        mapOf("id" to 5781070, "name" to "Sandy Hills"),
+        mapOf("id" to 792680, "name" to "Belgrade"),
+        mapOf("id" to 4350049, "name" to "California"),
     )
 
     private val tabs = listOf("Clear", "Clouds", "Rain", "Snow")
@@ -83,7 +94,8 @@ class WeatherViewModel @Inject constructor(
     private val viewModelState = MutableStateFlow(
         WeatherViewModelState(
             tabs = tabs,
-            isLoading = true,
+//            isLoading = true,
+            isLoading = false,
             failed = ""
         )
     )
@@ -100,54 +112,67 @@ class WeatherViewModel @Inject constructor(
         load()
     }
 
-    private fun load(tab: String = "Clear") = viewModelScope.launch {
-        cities.keys.forEach { id ->
-            val resultForecast = mutableListOf<WeatherInfo>()
+    fun load(tab: String = "Clear") = CoroutineScope(Dispatchers.IO).launch {
+        _weatherList.clear()
+        viewModelState.update {
+            it.copy(isLoading = true)
+        }
+        var index = 0
+        flow {
+            supervisorScope {
+                repeat(8) {
+                    val city = cities[index]
+                    val id = city["id"] as Int
+                    val name = city["name"] as String
+                    val forecast = async { forecastUseCase.load(cityId = id, apiKey = API_KEY) }
+                    val weather = async { weatherUseCase.load(cityName = name, apiKey = API_KEY) }
+                    val result = awaitAll(forecast, weather)
+                    index++
+                    emit(result)
+                }
+            }
+        }.onCompletion {
+            filterByTab(tab)
+        }.collect {
             val resultWeather = mutableStateOf<Weather?>(null)
-            useCase.loadForecast(cityId = id, apiKey = API_KEY).collect { result ->
-                when (result) {
-                    is LoadWeatherResult.Success -> resultForecast.addAll(result.data)
-                    is LoadWeatherResult.Failure -> {
-                        when (result.exception) {
-                            is Connectivity -> {
-                                viewModelState.update { it.copy(failed = CONNECTIVITY_FAIL) }
-                            }
+            it.firstOrNull()?.collect { result -> collectData(result, resultWeather) }
+            it.lastOrNull()?.collect { result -> collectData(result, resultWeather) }
+        }
+    }
 
-                            else -> {
-                                viewModelState.update { it.copy(failed = UNEXPECTED_FAIL) }
-                            }
-                        }
-                    }
+    private fun collectData(
+        result: Result,
+        resultWeather: MutableState<Weather?>
+    ) {
+        when (result) {
+            is Result.Success -> {
+                if (result.data.forecasts.isNotEmpty()) {
+                    resultWeather.value = result.data
+                } else {
+                    resultWeather.value = resultWeather.value?.copy(
+                        main = result.data.main,
+                        weather = result.data.weather,
+                        name = result.data.name
+                    )
+                    _weatherList.add(resultWeather.value ?: Weather())
                 }
             }
 
-            useCase.loadWeather(cityName = cities[id].orEmpty(), apiKey = API_KEY)
-                .collect { result ->
-                    when (result) {
-                        is LoadWeatherResult.Success -> resultWeather.value = result.data
-                        is LoadWeatherResult.Failure -> {
-                            when (result.exception) {
-                                is Connectivity -> {
-                                    viewModelState.update { it.copy(failed = CONNECTIVITY_FAIL) }
-                                }
+            is Result.Failure -> {
+                when (result.exception) {
+                    is Connectivity -> {
+                        viewModelState.update { it.copy(failed = CONNECTIVITY_FAIL) }
+                    }
 
-                                else -> {
-                                    viewModelState.update { it.copy(failed = UNEXPECTED_FAIL) }
-                                }
-                            }
-                        }
+                    else -> {
+                        viewModelState.update { it.copy(failed = UNEXPECTED_FAIL) }
                     }
                 }
-
-            _weatherList.add(
-                resultWeather.value?.copy(forecasts = resultForecast) ?: emptyWeather()
-            )
+            }
         }
-
-        filterByTab(tab)
     }
 
-    fun filterByTab(tab: String) {
+    private fun filterByTab(tab: String) {
         viewModelState.update { root ->
             root.copy(
                 isLoading = false,
@@ -159,13 +184,6 @@ class WeatherViewModel @Inject constructor(
             )
         }
     }
-
-    private fun emptyWeather() = Weather(
-        main = MainInfo(0.0, 0.0, 0.0, 0.0, "", "", "", 0, 0),
-        weather = emptyList(),
-        forecasts = emptyList(),
-        name = ""
-    )
 
     companion object {
         private const val API_KEY = "1b7eeecd2ff64dc83e8dcf1f4cb2102b"

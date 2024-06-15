@@ -87,7 +87,8 @@ fun WeatherScreen(
                             },
                             onTabClick = {
                                 selectedTab.value = tab
-                                viewModel.filterByTab(tab)
+//                                viewModel.filterByTab(tab)
+                                viewModel.load(tab)
                             }
                         )
                     }
@@ -110,13 +111,9 @@ fun WeatherScreen(
 
                             is WeatherUiState.NoWeather -> {
                                 if (weatherUiState.failed.isEmpty()) {
-                                    Text(
-                                        "List Weather Empty",
-                                    )
+                                    Text("List Weather Empty",)
                                 } else {
-                                    Text(
-                                        weatherUiState.failed,
-                                    )
+                                    Text(weatherUiState.failed,)
                                 }
                             }
                         }
